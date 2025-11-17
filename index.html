@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Logic Quiz</title>
+<title>Interactive Logic Quiz</title>
 <style>
   body {
     font-family: Arial, sans-serif;
@@ -15,13 +15,23 @@
     margin: 0;
   }
 
+  #score-box {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: white;
+    padding: 12px 18px;
+    border-radius: 10px;
+    font-weight: bold;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+  }
+
   #quiz-box {
-    width: 550px;            /* FIXED SIZE */
-    min-height: 300px;       /* FIXED HEIGHT FOR ALL QUESTIONS */
     padding: 40px;
     border-radius: 20px;
     text-align: center;
-    transition: background 0.5s;
+    width: 500px;
+    transition: background 0.5s, color 0.5s;
     box-shadow: 0 10px 25px rgba(0,0,0,0.2);
   }
 
@@ -33,52 +43,81 @@
   #question {
     font-size: 20px;
     font-weight: bold;
-    margin-bottom: 25px;
+    margin-bottom: 20px;
     color: #333;
   }
 
-  /* FIX BUTTON LAYOUT */
-  #choices {
-    display: flex;
-    justify-content: center;
-    gap: 15px;
-    flex-wrap: nowrap;     /* buttons stay on one line */
-  }
-
-  /* FIX BUTTON SIZE */
   .choice {
-    width: 150px;          /* SAME WIDTH FOR ALL BUTTONS */
-    height: 70px;          /* SAME HEIGHT */
+    padding: 22px 45px;
+    margin: 10px;
     border-radius: 12px;
     cursor: pointer;
-    border: none;
-    font-size: 18px;
+    transition: all 0.3s;
     font-weight: bold;
+    font-size: 18px;
+    border: none;
     color: #333;
-    transition: opacity 0.2s;
+    display: inline-block;
   }
 
   .choice:hover {
-    opacity: 0.8;
+    transform: scale(1.05);
+    opacity: 0.85;
+  }
+
+  #hint-box {
+    margin-top: 15px;
+    font-weight: bold;
+    color: #4a148c;
+    display: none;
+  }
+
+  #hint-button {
+    margin-top: 10px;
+    padding: 10px 20px;
+    background: #caffbf;
+    border-radius: 10px;
+    cursor: pointer;
+    border: none;
+    font-weight: bold;
   }
 
   #feedback {
-    margin-top: 20px;
+    margin-top: 15px;
     font-weight: bold;
+  }
+
+  .bounce-in {
+    animation: bounceIn 0.6s ease forwards;
+  }
+
+  @keyframes bounceIn {
+    0% { transform: scale(0.5); opacity: 0; }
+    60% { transform: scale(1.2); opacity: 1; }
+    80% { transform: scale(0.95); }
+    100% { transform: scale(1); }
   }
 </style>
 </head>
 <body>
 
-<div id="quiz-box">
-  <h1>Logic Quiz</h1>
+<div id="score-box">Score: 0</div>
+
+<div id="quiz-box" class="bounce-in">
+  <h1 id="round-title">Round 1</h1>
   <h2 id="question">Loading question...</h2>
   <div id="choices"></div>
+  <button id="hint-button" onclick="showHint()">Show Hint</button>
+  <div id="hint-box"></div>
   <div id="feedback"></div>
+  <div id="restart"></div>
 </div>
 
 <script>
 let score = 0;
+let displayScore = 0;
+let attempts = 0;
+let round = 1;
 
 const questions = [
   {
@@ -86,65 +125,133 @@ const questions = [
     options: ["5", "4", "3"],
     correct: 2,
     boxColor: "#FFF9C4",
-    buttonColor: ["#FFF59D", "#FFF176", "#FFEE58"]
+    buttonColor: ["#FFF59D", "#FFF176", "#FFEE58"],
+    hint: "Think about overlapping positions!"
   },
   {
     q: "Five people were eating apples. A finished before B but behind C. D finished before E but behind B. What was the finishing order?",
     options: ["C, A, B, D, E", "A, C, B, D, E", "C, B, A, E, D"],
     correct: 0,
     boxColor: "#FFCDD2",
-    buttonColor: ["#EF9A9A", "#E57373", "#EF5350"]
+    buttonColor: ["#EF9A9A", "#E57373", "#EF5350"],
+    hint: "Place them like a timeline from fastest to slowest."
   },
   {
-    q: "A girl wears socks of different colors to school every day and never repeats a color during a 5-day week. On one of these days, her teacher asks her to wear the same-colored pair for a school photoshoot, but she wears a new white pair. How many pairs of socks has she worn this week?",
+    q: "A girl wears socks of different colors for 5 days. For photos she wears a NEW white pair. How many total pairs?",
     options: ["4", "9", "12"],
     correct: 1,
     boxColor: "linear-gradient(to right, #ffadad, #ffd6a5, #fdffb6, #caffbf, #a0c4ff)",
-    buttonColor: ["#ffadad", "#ffd6a5", "#fdffb6"]
+    buttonColor: ["#ffadad", "#ffd6a5", "#fdffb6", "#caffbf", "#a0c4ff"],
+    hint: "5 different colors + 1 new white pair."
   }
 ];
 
 let currentIndex = 0;
 
+function animateScore() {
+  let step = (score - displayScore) / 20;
+  let interval = setInterval(() => {
+    displayScore += step;
+    if (Math.abs(score - displayScore) < 0.05) {
+      displayScore = score;
+      clearInterval(interval);
+    }
+    document.getElementById("score-box").innerText = "Score: " + Math.round(displayScore);
+  }, 20);
+}
+
 function loadQuestion() {
   if (currentIndex >= questions.length) {
-    document.getElementById("question").innerText = `Quiz Completed! Your score: ${score}/${questions.length}`;
+    if (round === 1) {
+      round = 2;
+      currentIndex = 0;
+      document.getElementById("round-title").innerText = "Round 2 (Hints On)";
+      loadQuestion();
+      return;
+    }
+
+    document.getElementById("question").innerText =
+      `Quiz Completed! Final Score: ${score}/${questions.length * 2}`;
     document.getElementById("choices").innerHTML = "";
-    document.getElementById("feedback").innerText = "Great job!";
+    document.getElementById("feedback").innerText = "";
+    document.getElementById("hint-box").style.display = "none";
+    document.getElementById("hint-button").style.display = "none";
+
+    document.getElementById("restart").innerHTML =
+      `<button class="choice" style="background:#caffbf" onclick="restartQuiz()">Restart Quiz</button>`;
     return;
   }
 
+  attempts = 0;
+
   const q = questions[currentIndex];
   const box = document.getElementById("quiz-box");
+
   box.style.background = q.boxColor;
+
+  box.classList.remove("bounce-in");
+  void box.offsetWidth;
+  box.classList.add("bounce-in");
 
   document.getElementById("question").innerText = q.q;
 
   let html = "";
   q.options.forEach((choice, i) => {
     const color = q.buttonColor[i % q.buttonColor.length];
-    html += `<button class="choice" style="background-color:${color}" onclick="checkAnswer(${i})">${choice}</button>`;
+    html += `<button class="choice bounce-in" style="background-color:${color}" onclick="checkAnswer(${i})">${choice}</button>`;
   });
 
   document.getElementById("choices").innerHTML = html;
   document.getElementById("feedback").innerText = "";
+  document.getElementById("restart").innerHTML = "";
+
+  document.getElementById("hint-box").style.display = "none";
+  document.getElementById("hint-button").style.display = round === 2 ? "block" : "none";
 }
 
 function checkAnswer(selected) {
-  const q = questions[currentIndex];
   const feedback = document.getElementById("feedback");
+  const q = questions[currentIndex];
 
   if (selected === q.correct) {
     score++;
+    animateScore();
     feedback.style.color = "green";
     feedback.innerText = "Correct! +1 point";
-  } else {
-    feedback.style.color = "red";
-    feedback.innerText = "Wrong! No more attempts.";
-  }
+    currentIndex++;
+    setTimeout(loadQuestion, 800);
 
-  currentIndex++;
-  setTimeout(loadQuestion, 1000);
+  } else {
+    attempts++;
+
+    if (attempts === 1) {
+      feedback.style.color = "red";
+      feedback.innerText = "Wrong! Try again.";
+      if (round === 2) showHint();
+    } else {
+      feedback.style.color = "red";
+      feedback.innerText = "Oopsie! Moving on...";
+      currentIndex++;
+      setTimeout(loadQuestion, 800);
+    }
+  }
+}
+
+function showHint() {
+  const q = questions[currentIndex];
+  const hintBox = document.getElementById("hint-box");
+  hintBox.innerText = "Hint: " + q.hint;
+  hintBox.style.display = "block";
+}
+
+function restartQuiz() {
+  score = 0;
+  displayScore = 0;
+  currentIndex = 0;
+  round = 1;
+  animateScore();
+  document.getElementById("round-title").innerText = "Round 1";
+  loadQuestion();
 }
 
 loadQuestion();
