@@ -7,7 +7,7 @@
 <style>
   body {
     font-family: Arial, sans-serif;
-    background: url('image.jpg') center/cover no-repeat; /* replace with your image */
+    background: url('image.jpg') center/cover no-repeat; /* static background */
     display: flex;
     justify-content: center;
     align-items: center;
@@ -21,11 +21,20 @@
     text-align: center;
     width: 500px;
     transition: background-color 0.5s, color 0.5s;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
   }
 
   h1 {
     color: #333;
     margin-bottom: 20px;
+  }
+
+  #question {
+    padding: 15px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    font-size: 20px;
+    font-weight: bold;
   }
 
   .choice {
@@ -70,9 +79,9 @@
 </head>
 <body>
 
-<div id="quiz-box" class="bounce-in">
+<div id="quiz-box">
   <h1>Logic Quiz</h1>
-  <h2 id="question">Loading question...</h2>
+  <div id="question" class="bounce-in">Loading question...</div>
   <div id="choices"></div>
   <div id="feedback"></div>
 </div>
@@ -97,8 +106,8 @@ const questions = [
     q: "A girl wears socks of different colors to school every day and never repeats a color during a 5-day week. On one of these days, her teacher asks her to wear the same-colored pair for a school photoshoot, but she wears a new white pair. How many pairs of socks has she worn this week?",
     options: ["4", "9", "12"],
     correct: 1,
-    boxColor: "linear-gradient(to right, #ffadad, #ffd6a5, #fdffb6, #caffbf, #a0c4ff)",
-    buttonColor: ["#ffadad", "#ffd6a5", "#fdffb6", "#caffbf", "#a0c4ff"]
+    boxColor: "linear-gradient(to right, #ffadad, #ffd6a5, #fdffb6, #caffbf, #a0c4ff)", // rainbow box
+    buttonColor: ["#ffadad", "#ffd6a5", "#fdffb6", "#caffbf", "#a0c4ff"] // solid buttons
   }
 ];
 
@@ -114,36 +123,33 @@ function loadQuestion() {
 
   const q = questions[currentIndex];
   const box = document.getElementById("quiz-box");
+  const questionDiv = document.getElementById("question");
 
-  // set box color
+  // set quiz box background
   if(currentIndex !== 2) {
     box.style.backgroundColor = q.boxColor;
     box.style.background = "";
+    questionDiv.style.backgroundColor = q.boxColor;
+    questionDiv.style.backgroundImage = "";
   } else {
-    box.style.background = q.boxColor; // rainbow gradient
+    box.style.background = q.boxColor; // rainbow
+    questionDiv.style.backgroundColor = "transparent";
   }
 
-  // trigger bounce-in animation
-  box.classList.remove("bounce-in");
-  void box.offsetWidth; // reflow to restart animation
-  box.classList.add("bounce-in");
+  // trigger bounce animation for question
+  questionDiv.classList.remove("bounce-in");
+  void questionDiv.offsetWidth; // restart animation
+  questionDiv.classList.add("bounce-in");
 
   // set question text
-  document.getElementById("question").innerText = q.q;
+  questionDiv.innerText = q.q;
 
   // create buttons
   let html = "";
-  if(currentIndex !== 2) {
-    q.options.forEach((choice, i) => {
-      const color = q.buttonColor[i % q.buttonColor.length];
-      html += `<button class="choice bounce-in" style="background-color:${color}" onclick="checkAnswer(${i})">${choice}</button>`;
-    });
-  } else {
-    q.options.forEach((choice, i) => {
-      const colorIndex = i % q.buttonColor.length;
-      html += `<button class="choice bounce-in" style="background: linear-gradient(90deg, ${q.buttonColor[colorIndex]} 0%, ${q.buttonColor[(colorIndex+1)%q.buttonColor.length]} 100%)" onclick="checkAnswer(${i})">${choice}</button>`;
-    });
-  }
+  q.options.forEach((choice, i) => {
+    const color = q.buttonColor[i % q.buttonColor.length];
+    html += `<button class="choice bounce-in" style="background-color:${color}" onclick="checkAnswer(${i})">${choice}</button>`;
+  });
 
   document.getElementById("choices").innerHTML = html;
   document.getElementById("feedback").innerText = "";
@@ -168,5 +174,6 @@ loadQuestion();
 
 </body>
 </html>
+
 
 
