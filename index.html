@@ -5,123 +5,129 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Logic Quiz</title>
 <style>
-body {
-font-family: Arial, sans-serif;
-background: #eef2ff;
-display: flex;
-justify-content: center;
-align-items: center;
-height: 100vh;
-margin: 0;
-}
+  body {
+    font-family: Arial, sans-serif;
+    background: url('your-background-image.jpg') center/cover no-repeat; /* replace with your image */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+  }
 
-#quiz-box {
-background: white;
-padding: 30px;
-border-radius: 15px;
-box-shadow: 0 5px 20px rgba(0,0,0,0.1);
-text-align: center;
-width: 450px;
-}
+  #quiz-box {
+    padding: 30px;
+    border-radius: 20px;
+    text-align: center;
+    width: 450px;
+    transition: background-color 0.5s, color 0.5s;
+  }
 
-h1 {
-color: #4f46e5;
-}
+  h1 {
+    color: #333;
+    margin-bottom: 20px;
+  }
 
-.choice {
-background: #4f46e5;
-color: white;
-padding: 10px;
-margin: 10px 0;
-border-radius: 10px;
-cursor: pointer;
-transition: opacity 0.2s;
-}
+  .choice {
+    padding: 10px;
+    margin: 10px 0;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-weight: bold;
+    border: none;
+  }
 
-.choice:hover {
-opacity: 0.85;
-}
+  .choice:hover {
+    transform: scale(1.05);
+    opacity: 0.85;
+  }
 
-#feedback {
-margin-top: 15px;
-font-weight: bold;
-}
+  #feedback {
+    margin-top: 15px;
+    font-weight: bold;
+  }
 </style>
 </head>
 <body>
 
 <div id="quiz-box">
-<h1>Logic Quiz</h1>
-<h2 id="question">Loading question...</h2>
-<div id="choices"></div>
-<div id="feedback"></div>
+  <h1>Logic Quiz</h1>
+  <h2 id="question">Loading question...</h2>
+  <div id="choices"></div>
+  <div id="feedback"></div>
 </div>
 
 <script>
-// Quiz questions
 const questions = [
-{
-q: "Five people were eating apples. A finished before B but behind C. D finished before E but behind B. What was the finishing order?",
-options: [
-"C, A, B, D, E",
-"A, C, B, D, E",
-"C, B, A, E, D"
-],
-correct: 0
-},
-{
-q: "A girl wears socks of different colors to school every day and never repeats a color. One day her teacher asks her to wear a previously used pair for a photo. How many pairs of socks has she worn this week?",
-options: [
-"4 pairs",
-"7 pairs",
-"9 pairs"
-],
-correct: 0
-},
-{
-q: "There are two ducks in front of a duck, two ducks behind a duck, and a duck in the middle. How many ducks are there?",
-options: [
-"5",
-"4",
-"3"
-],
-correct: 2
-}
+  {
+    q: "There are two ducks in front of a duck, two ducks behind a duck, and a duck in the middle. How many ducks are there?",
+    options: ["5", "4", "3"],
+    correct: 2,
+    boxColor: "#FFF9C4", // pastel yellow
+    buttonColor: ["#FFF59D", "#FFF176", "#FFEE58"]
+  },
+  {
+    q: "Five people were eating apples. A finished before B but behind C. D finished before E but behind B. What was the finishing order?",
+    options: ["C, A, B, D, E", "A, C, B, D, E", "C, B, A, E, D"],
+    correct: 0,
+    boxColor: "#FFCDD2", // pastel red
+    buttonColor: ["#EF9A9A", "#E57373", "#EF5350"]
+  },
+  {
+    q: "A girl wears socks of different colors to school every day and never repeats a color during a 5-day week. On one of these days, her teacher asks her to wear the same-colored pair for a school photoshoot, but she wears a new white pair. How many pairs of socks has she worn this week?",
+    options: ["4", "9", "12"],
+    correct: 1,
+    boxColor: "linear-gradient(to right, #FFB6C1, #FFD700, #ADFF2F, #87CEFA, #EE82EE)", // pastel rainbow
+    buttonColor: ["#FFC1CC", "#FFE066", "#B0F2A1"]
+  }
 ];
 
 let currentIndex = 0;
 
 function loadQuestion() {
-if (currentIndex >= questions.length) {
-document.getElementById("question").innerText = "Quiz Completed!";
-document.getElementById("choices").innerHTML = "";
-document.getElementById("feedback").innerText = "Congratulations, you answered all questions!";
-return;
-}
+  if(currentIndex >= questions.length) {
+    document.getElementById("question").innerText = "Quiz Completed!";
+    document.getElementById("choices").innerHTML = "";
+    document.getElementById("feedback").innerText = "Congratulations, you answered all questions!";
+    return;
+  }
 
-const q = questions[currentIndex];
-document.getElementById("question").innerText = q.q;
+  const q = questions[currentIndex];
 
-let html = "";
-q.options.forEach((choice, i) => {
-html += `<div class="choice" onclick="checkAnswer(${i})">${choice}</div>`;
-});
-document.getElementById("choices").innerHTML = html;
-document.getElementById("feedback").innerText = "";
+  document.getElementById("question").innerText = q.q;
+
+  // Change box color
+  const box = document.getElementById("quiz-box");
+  if(currentIndex !== 2) { // first two questions use solid colors
+    box.style.backgroundColor = q.boxColor;
+  } else { // rainbow for last
+    box.style.background = q.boxColor;
+  }
+
+  // Generate choices with colors
+  let html = "";
+  q.options.forEach((choice, i) => {
+    const color = q.buttonColor[i % q.buttonColor.length];
+    html += `<button class="choice" style="background-color:${color}" onclick="checkAnswer(${i})">${choice}</button>`;
+  });
+
+  document.getElementById("choices").innerHTML = html;
+  document.getElementById("feedback").innerText = "";
 }
 
 function checkAnswer(selected) {
-const feedback = document.getElementById("feedback");
-const q = questions[currentIndex];
-if (selected === q.correct) {
-feedback.style.color = "green";
-feedback.innerText = "Correct! ✅";
-currentIndex++;
-setTimeout(loadQuestion, 1000); // Move to next question after 1 second
-} else {
-feedback.style.color = "red";
-feedback.innerText = "Wrong! Try again.";
-}
+  const feedback = document.getElementById("feedback");
+  const q = questions[currentIndex];
+  if(selected === q.correct) {
+    feedback.style.color = "green";
+    feedback.innerText = "Correct! ✅";
+    currentIndex++;
+    setTimeout(loadQuestion, 1000);
+  } else {
+    feedback.style.color = "red";
+    feedback.innerText = "Wrong! Try again.";
+  }
 }
 
 loadQuestion();
