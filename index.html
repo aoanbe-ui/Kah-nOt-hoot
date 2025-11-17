@@ -16,10 +16,10 @@
   }
 
   #quiz-box {
-    padding: 30px;
+    padding: 40px;
     border-radius: 20px;
     text-align: center;
-    width: 450px;
+    width: 500px;
     transition: background-color 0.5s, color 0.5s;
   }
 
@@ -35,7 +35,7 @@
     cursor: pointer;
     transition: all 0.3s;
     font-weight: bold;
-    font-size: 15px;
+    font-size: 18px;
     border: none;
   }
 
@@ -65,14 +65,14 @@ const questions = [
     q: "There are two ducks in front of a duck, two ducks behind a duck, and a duck in the middle. How many ducks are there?",
     options: ["5", "4", "3"],
     correct: 2,
-    boxColor: "#FFF9C4", // pastel yellow
+    boxColor: "#FFF9C4",
     buttonColor: ["#FFF59D", "#FFF176", "#FFEE58"]
   },
   {
     q: "Five people were eating apples. A finished before B but behind C. D finished before E but behind B. What was the finishing order?",
     options: ["C, A, B, D, E", "A, C, B, D, E", "C, B, A, E, D"],
     correct: 0,
-    boxColor: "#FFCDD2", // pastel red
+    boxColor: "#FFCDD2",
     buttonColor: ["#EF9A9A", "#E57373", "#EF5350"]
   },
   {
@@ -80,7 +80,7 @@ const questions = [
     options: ["4", "9", "12"],
     correct: 1,
     boxColor: "linear-gradient(to right, #ffadad, #ffd6a5, #fdffb6, #caffbf, #a0c4ff)",
-    buttonColor: ["#9bf6ff", "#bdb2ff", "#ffc6ff"]
+    buttonColor: ["#ffadad", "#ffd6a5", "#fdffb6"]
   }
 ];
 
@@ -98,15 +98,13 @@ function loadQuestion() {
 
   document.getElementById("question").innerText = q.q;
 
-  // Change box color
   const box = document.getElementById("quiz-box");
-  if(currentIndex !== 2) { // first two questions use solid colors
+  if(currentIndex !== 2) {
     box.style.backgroundColor = q.boxColor;
-  } else { // rainbow for last
+  } else {
     box.style.background = q.boxColor;
   }
 
-  // Generate choices with colors
   let html = "";
   q.options.forEach((choice, i) => {
     const color = q.buttonColor[i % q.buttonColor.length];
@@ -136,3 +134,4 @@ loadQuestion();
 
 </body>
 </html>
+
