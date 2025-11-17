@@ -3,11 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Interactive Logic Quiz</title>
+<title>Logic Quiz</title>
 <style>
   body {
     font-family: Arial, sans-serif;
-    background: url('image.jpg') center/cover no-repeat; /* static background */
+    background: url('image.jpg') center/cover no-repeat;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -16,11 +16,12 @@
   }
 
   #quiz-box {
+    width: 550px;            /* FIXED SIZE */
+    min-height: 450px;       /* FIXED HEIGHT FOR ALL QUESTIONS */
     padding: 40px;
     border-radius: 20px;
     text-align: center;
-    width: 500px;
-    transition: background 0.5s, color 0.5s;
+    transition: background 0.5s;
     box-shadow: 0 10px 25px rgba(0,0,0,0.2);
   }
 
@@ -32,48 +33,44 @@
   #question {
     font-size: 20px;
     font-weight: bold;
-    margin-bottom: 20px;
+    margin-bottom: 25px;
     color: #333;
   }
 
+  /* FIX BUTTON LAYOUT */
+  #choices {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    flex-wrap: nowrap;     /* buttons stay on one line */
+  }
+
+  /* FIX BUTTON SIZE */
   .choice {
-    padding: 22px 45px;
-    margin: 15px 0;
+    width: 150px;          /* SAME WIDTH FOR ALL BUTTONS */
+    height: 70px;          /* SAME HEIGHT */
     border-radius: 12px;
     cursor: pointer;
-    transition: all 0.3s;
-    font-weight: bold;
-    font-size: 18px;
     border: none;
+    font-size: 18px;
+    font-weight: bold;
     color: #333;
+    transition: opacity 0.2s;
   }
 
   .choice:hover {
-    transform: scale(1.05);
-    opacity: 0.85;
+    opacity: 0.8;
   }
 
   #feedback {
-    margin-top: 15px;
+    margin-top: 20px;
     font-weight: bold;
-  }
-
-  /* Bounce-in animation for box and buttons */
-  .bounce-in {
-    animation: bounceIn 0.6s ease forwards;
-  }
-
-  @keyframes bounceIn {
-    0% { transform: scale(0.5); opacity: 0; }
-    60% { transform: scale(1.2); opacity: 1; }
-    80% { transform: scale(0.95); }
-    100% { transform: scale(1); }
   }
 </style>
 </head>
 <body>
 
-<div id="quiz-box" class="bounce-in">
+<div id="quiz-box">
   <h1>Logic Quiz</h1>
   <h2 id="question">Loading question...</h2>
   <div id="choices"></div>
@@ -81,27 +78,29 @@
 </div>
 
 <script>
+let score = 0;
+
 const questions = [
   {
     q: "There are two ducks in front of a duck, two ducks behind a duck, and a duck in the middle. How many ducks are there?",
     options: ["5", "4", "3"],
     correct: 2,
-    boxColor: "#FFF9C4", // pastel yellow
+    boxColor: "#FFF9C4",
     buttonColor: ["#FFF59D", "#FFF176", "#FFEE58"]
   },
   {
     q: "Five people were eating apples. A finished before B but behind C. D finished before E but behind B. What was the finishing order?",
     options: ["C, A, B, D, E", "A, C, B, D, E", "C, B, A, E, D"],
     correct: 0,
-    boxColor: "#FFCDD2", // pastel red
+    boxColor: "#FFCDD2",
     buttonColor: ["#EF9A9A", "#E57373", "#EF5350"]
   },
   {
     q: "A girl wears socks of different colors to school every day and never repeats a color during a 5-day week. On one of these days, her teacher asks her to wear the same-colored pair for a school photoshoot, but she wears a new white pair. How many pairs of socks has she worn this week?",
     options: ["4", "9", "12"],
     correct: 1,
-    boxColor: "linear-gradient(to right, #ffadad, #ffd6a5, #fdffb6, #caffbf, #a0c4ff)", // rainbow
-    buttonColor: ["#ffadad", "#ffd6a5", "#fdffb6", "#caffbf", "#a0c4ff"] // solid colors
+    boxColor: "linear-gradient(to right, #ffadad, #ffd6a5, #fdffb6, #caffbf, #a0c4ff)",
+    buttonColor: ["#ffadad", "#ffd6a5", "#fdffb6"]
   }
 ];
 
@@ -109,32 +108,22 @@ let currentIndex = 0;
 
 function loadQuestion() {
   if (currentIndex >= questions.length) {
-    document.getElementById("question").innerText = "Quiz Completed!";
+    document.getElementById("question").innerText = `Quiz Completed! Your score: ${score}/${questions.length}`;
     document.getElementById("choices").innerHTML = "";
-    document.getElementById("feedback").innerText = "Congratulations, you answered all questions!";
+    document.getElementById("feedback").innerText = "Great job!";
     return;
   }
 
   const q = questions[currentIndex];
   const box = document.getElementById("quiz-box");
-  const questionDiv = document.getElementById("question");
+  box.style.background = q.boxColor;
 
-  // Set box background
-  box.style.background = currentIndex === 2 ? q.boxColor : q.boxColor;
+  document.getElementById("question").innerText = q.q;
 
-  // Trigger bounce animation for quiz box
-  box.classList.remove("bounce-in");
-  void box.offsetWidth; // reflow to restart animation
-  box.classList.add("bounce-in");
-
-  // Set question text
-  questionDiv.innerText = q.q;
-
-  // Generate buttons
   let html = "";
   q.options.forEach((choice, i) => {
     const color = q.buttonColor[i % q.buttonColor.length];
-    html += `<button class="choice bounce-in" style="background-color:${color}" onclick="checkAnswer(${i})">${choice}</button>`;
+    html += `<button class="choice" style="background-color:${color}" onclick="checkAnswer(${i})">${choice}</button>`;
   });
 
   document.getElementById("choices").innerHTML = html;
@@ -142,17 +131,20 @@ function loadQuestion() {
 }
 
 function checkAnswer(selected) {
-  const feedback = document.getElementById("feedback");
   const q = questions[currentIndex];
+  const feedback = document.getElementById("feedback");
+
   if (selected === q.correct) {
+    score++;
     feedback.style.color = "green";
-    feedback.innerText = "Correct! ✅";
-    currentIndex++;
-    setTimeout(loadQuestion, 800);
+    feedback.innerText = "Correct! +1 point";
   } else {
     feedback.style.color = "red";
-    feedback.innerText = "Wrong! Try again.";
+    feedback.innerText = "Wrong! No more attempts.";
   }
+
+  currentIndex++;
+  setTimeout(loadQuestion, 1000);
 }
 
 loadQuestion();
@@ -160,4 +152,3 @@ loadQuestion();
 
 </body>
 </html>
-
