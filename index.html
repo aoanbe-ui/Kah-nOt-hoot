@@ -65,23 +65,6 @@
     opacity: 0.85;
   }
 
-  #hint-box {
-    margin-top: 15px;
-    font-weight: bold;
-    color: #4a148c;
-    display: none;
-  }
-
-  #hint-button {
-    margin-top: 10px;
-    padding: 10px 20px;
-    background: #caffbf;
-    border-radius: 10px;
-    cursor: pointer;
-    border: none;
-    font-weight: bold;
-  }
-
   #feedback {
     margin-top: 15px;
     font-weight: bold;
@@ -104,11 +87,9 @@
 <div id="score-box">Score: 0</div>
 
 <div id="quiz-box" class="bounce-in">
-  <h1 id="round-title">Round 1</h1>
+  <h1>Logic Quiz</h1>
   <h2 id="question">Loading question...</h2>
   <div id="choices"></div>
-  <button id="hint-button" onclick="showHint()">Show Hint</button>
-  <div id="hint-box"></div>
   <div id="feedback"></div>
   <div id="restart"></div>
 </div>
@@ -117,9 +98,6 @@
 let score = 0;
 let displayScore = 0;
 let attempts = 0;
-let round = 1;
-let failedOnce = false;
-
 
 const questions = [
   {
@@ -127,24 +105,21 @@ const questions = [
     options: ["5", "4", "3"],
     correct: 2,
     boxColor: "#FFF9C4",
-    buttonColor: ["#FFF59D", "#FFF176", "#FFEE58"],
-    hint: "Think about overlapping positions!"
+    buttonColor: ["#FFF59D", "#FFF176", "#FFEE58"]
   },
   {
     q: "Five people were eating apples. A finished before B but behind C. D finished before E but behind B. What was the finishing order?",
     options: ["C, A, B, D, E", "A, C, B, D, E", "C, B, A, E, D"],
     correct: 0,
     boxColor: "#FFCDD2",
-    buttonColor: ["#EF9A9A", "#E57373", "#EF5350"],
-    hint: "Place them like a timeline from fastest to slowest."
+    buttonColor: ["#EF9A9A", "#E57373", "#d65e5e"]
   },
   {
     q: "A girl wears socks of different colors for 5 days. For photos she wears a NEW white pair. How many total pairs?",
-    options: ["4", "9", "12"],
+    options: ["5", "9", "12"],
     correct: 1,
     boxColor: "linear-gradient(to right, #ffadad, #ffd6a5, #fdffb6, #caffbf, #a0c4ff)",
-    buttonColor: ["#ffadad", "#ffd6a5", "#fdffb6", "#caffbf", "#a0c4ff"],
-    hint: "5 different colors + 1 new white pair."
+    buttonColor: ["#ffadad", "#ffd6a5", "#fdffb6", "#caffbf", "#a0c4ff"]
   }
 ];
 
@@ -162,25 +137,12 @@ function animateScore() {
   }, 20);
 }
 
-if (currentIndex >= questions.length) {
-    document.getElementById("choices").innerHTML = "";
-    document.getElementById("feedback").innerText = "";
-    if (!failedOnce) {
-      document.getElementById("question").innerText = "🎉 Quiz Completed!";
-    } else {
-      document.getElementById("question").innerText = "Quiz finished!";
-    }
-    document.getElementById("choices").innerHTML =
-      `<button class="choice" style="background:#ffd6a5" onclick="restartQuiz()">Restart Quiz</button>`;
-    return;
-}
-
+function loadQuestion() {
+  if (currentIndex >= questions.length) {
     document.getElementById("question").innerText =
-      `Quiz Completed! Final Score: ${score}/${questions.length * 2}`;
+      `Quiz Completed! Final Score: ${score}/${questions.length}`;
     document.getElementById("choices").innerHTML = "";
     document.getElementById("feedback").innerText = "";
-    document.getElementById("hint-box").style.display = "none";
-    document.getElementById("hint-button").style.display = "none";
 
     document.getElementById("restart").innerHTML =
       `<button class="choice" style="background:#caffbf" onclick="restartQuiz()">Restart Quiz</button>`;
@@ -209,57 +171,45 @@ if (currentIndex >= questions.length) {
   document.getElementById("choices").innerHTML = html;
   document.getElementById("feedback").innerText = "";
   document.getElementById("restart").innerHTML = "";
-
-  document.getElementById("hint-box").style.display = "none";
-  document.getElementById("hint-button").style.display = round === 2 ? "block" : "none";
 }
 
 function checkAnswer(selected) {
   const feedback = document.getElementById("feedback");
   const q = questions[currentIndex];
 
-  if (!q.firstTryUsed) q.firstTryUsed = false;
-
   if (selected === q.correct) {
+    score++;
+    animateScore();
     feedback.style.color = "green";
-    feedback.innerText = "Correct! ✅";
+    feedback.innerText = "Correct! +1 point";
     currentIndex++;
     setTimeout(loadQuestion, 800);
+
   } else {
-    if (!q.firstTryUsed) {
-      q.firstTryUsed = true;
+    attempts++;
+
+    if (attempts === 1) {
       feedback.style.color = "red";
       feedback.innerText = "Wrong! Try again.";
     } else {
-      failedOnce = true;
       feedback.style.color = "red";
-      feedback.innerText = "Oopsie! Moving on ➜";
+      feedback.innerText = "Oopsie! Moving on...";
       currentIndex++;
       setTimeout(loadQuestion, 800);
     }
   }
 }
 
-function showHint() {
-  const q = questions[currentIndex];
-  const hintBox = document.getElementById("hint-box");
-  hintBox.innerText = "Hint: " + q.hint;
-  hintBox.style.display = "block";
-}
-
 function restartQuiz() {
+  score = 0;
+  displayScore = 0;
   currentIndex = 0;
-  failedOnce = false;
-  questions.forEach(q => q.firstTryUsed = false);
-  document.getElementById("restart").innerHTML = "";
+  animateScore();
   loadQuestion();
 }
-
 
 loadQuestion();
 </script>
 
 </body>
 </html>
-
-
